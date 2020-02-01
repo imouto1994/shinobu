@@ -1,0 +1,32 @@
+.App {
+  background-color: #282c34;
+  min-height: 100vh;
+}
+
+.App-header {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.App-input {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  width: 90%;
+  padding: 16px 12px;
+  border: none;
+  font-size: 18px;
+  font-weight: 500;
+  border-radius: 2px;
+  -webkit-appearance: none;
+}
+
+.App-input:focus {
+  outline: none;
+}
+
+.App-link {
+  color: #61dafb;
+}
