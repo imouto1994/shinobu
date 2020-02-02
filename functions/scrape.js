@@ -1,7 +1,21 @@
 const got = require("got");
 const cheerio = require("cheerio");
+const queryString = require("query-string");
 
 const ALLOWED_HOSTNAMES = ["order.mandarake.co.jp"];
+
+function cleanupURL(str) {
+  const url = new URL(str);
+  const searchParams = queryString.parse(url.search);
+  const newSearchParams = {
+    itemCode: searchParams.itemCode,
+    lang: "en",
+  };
+
+  return `${url.origin}${url.pathname}?${queryString.stringify(
+    newSearchParams,
+  )}`;
+}
 
 function scrapeMandarake(bookURL, htmlString) {
   const $ = cheerio.load(htmlString);
@@ -20,16 +34,16 @@ function scrapeMandarake(bookURL, htmlString) {
 
   // Scrape store
   const storeName = $(".__shop")
-    .eq(1)
+    .eq(0)
     .text()
     .trim();
 
   // Scrape price
   const price =
-    $(".soldout").eq(1) == null
+    $(".soldout").length === 0
       ? parseInt(
           $(".__price")
-            .eq(1)
+            .eq(0)
             .text()
             .trim()
             .replace(/,/g, ""),
@@ -41,12 +55,19 @@ function scrapeMandarake(bookURL, htmlString) {
     sources.push({
       price,
       storeName,
-      url: bookURL,
+      url: cleanupURL(bookURL),
     });
   }
 
   // Scrape other sources
   $(".other_itemlist .block").each(function() {
+    const url = $(this)
+      .find(".title a")
+      .attr("href");
+    if (url.startsWith("#")) {
+      return;
+    }
+
     const storeName = $(this)
       .find(".shop")
       .text()
@@ -59,13 +80,10 @@ function scrapeMandarake(bookURL, htmlString) {
         .replace(/,/g, ""),
       10,
     );
-    const url = $(this)
-      .find(".title a")
-      .attr("href");
     sources.push({
       price,
       storeName,
-      url,
+      url: cleanupURL(`https://order.mandarake.co.jp${url}`),
     });
   });
 
@@ -94,9 +112,9 @@ exports.handler = async (event, context) => {
     if (!ALLOWED_HOSTNAMES.includes(parsedBookURL.hostname)) {
       return { statusCode: 400, body: "Book URL is not supported" };
     }
-
-    const response = await got(bookURL);
-    const scrapedData = scrapeMandarake(bookURL, response.body);
+    const url = cleanupURL(bookURL);
+    const response = await got(url);
+    const scrapedData = scrapeMandarake(url, response.body);
 
     return {
       statusCode: 200,

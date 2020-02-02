@@ -2,26 +2,113 @@ import React, { useState, ChangeEvent } from "react";
 
 import "./App.css";
 
+import ArrangedBooksModal from "./ArrangedBooksModal";
+import BookCard from "./BookCard";
+import IconCart from "./IconCart";
+import IconRefresh from "./IconRefresh";
+import {
+  arrangeBooks,
+  Book,
+  getTotalPrice,
+  isOutdatedBook,
+} from "../data/book";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { Map } from "../utils/type";
 
 const ALLOWED_HOSTNAMES = ["order.mandarake.co.jp"];
-
-type Book = {
-  id: string;
-  thumbnailURL: string;
-  thumbnailWidth: number;
-  thumbnailHeight: number;
-  sources: Array<{
-    price: number;
-    storeName: string;
-    url: string;
-  }>;
-};
+const DEFAULT_MESSAGE = "Mandarake - Rulers of Time <3";
 
 const App = () => {
-  const [bookURL, setBookURL] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
   const [currentBooks, setCurrentBooks] = useLocalStorage<Book[]>("books", []);
+  const [bookURL, setBookURL] = useState("");
+  const [statusMessage, setStatusMessage] = useState(DEFAULT_MESSAGE);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [shouldDisableButtons, setShouldDisableButtons] = useState(false);
+  const [arrangedBooks, setArrangedBooks] = useState<Map<Book[][]> | null>(
+    null,
+  );
+
+  const onBooksBuy = (): void => {
+    setShouldDisableButtons(true);
+    const hasSoldOut =
+      currentBooks.filter(book => book.sources.length === 0).length > 0;
+    if (hasSoldOut) {
+      setStatusMessage("There is at least one book sold out!");
+      setShouldDisableButtons(false);
+    } else {
+      // Prioritize UI being updated fist before proceeding
+      // since book packing is a long synchronous task
+      setTimeout(() => {
+        const newArrangedBooks = arrangeBooks(currentBooks);
+        setArrangedBooks(newArrangedBooks);
+        setShouldDisableButtons(false);
+      }, 0);
+    }
+  };
+
+  const onBooksRefresh = async (): Promise<void> => {
+    setShouldDisableButtons(true);
+    setStatusMessage("Refreshing outdated books...");
+    const updatedBooks = [...currentBooks];
+    for (const index in updatedBooks) {
+      const book = updatedBooks[index];
+      if (!isOutdatedBook(book)) {
+        continue;
+      }
+      try {
+        const response = await fetch(
+          `/.netlify/functions/scrape?bookURL=${encodeURIComponent(book.id)}`,
+        );
+        const body = await response.json();
+        const { sources } = body;
+        updatedBooks[index] = {
+          ...book,
+          sources,
+          lastUpdatedAt: Date.now(),
+        };
+      } catch (e) {
+        setStatusMessage(`Failed to refresh book URL: ${book.id}`);
+      }
+    }
+
+    setShouldDisableButtons(false);
+    setStatusMessage(DEFAULT_MESSAGE);
+    setCurrentBooks(updatedBooks);
+  };
+
+  const onBookSelectToggle = (index: number): void => {
+    // Select a book
+    if (selectedIndex == null) {
+      setSelectedIndex(index);
+    }
+    // Unselect a book
+    else if (selectedIndex === index) {
+      setSelectedIndex(null);
+    }
+    // Swap positions of 2 books
+    else {
+      const targetBook = currentBooks[index];
+      const sourceBook = currentBooks[selectedIndex];
+      const preTargetBooks = currentBooks.filter(
+        (_, i: number) => i < index && i !== selectedIndex,
+      );
+      const postTargetBooks = currentBooks.filter(
+        (_, i: number) => i > index && i !== selectedIndex,
+      );
+      const updatedBooks = [
+        ...preTargetBooks,
+        sourceBook,
+        targetBook,
+        ...postTargetBooks,
+      ];
+      setCurrentBooks(updatedBooks);
+      setSelectedIndex(null);
+    }
+  };
+
+  const onBookDelete = (index: number): void => {
+    setCurrentBooks(currentBooks.filter((_, i) => i !== index));
+  };
 
   const onInputChange = async (
     e: ChangeEvent<HTMLInputElement>,
@@ -29,6 +116,13 @@ const App = () => {
     const newURL = e.target.value;
     setBookURL(newURL);
 
+    // Empty string
+    if (newURL.trim().length === 0) {
+      setStatusMessage(DEFAULT_MESSAGE);
+      return;
+    }
+
+    // Parse hostname to ensure URL is from Mandarake
     let hostname;
     try {
       hostname = new URL(newURL).hostname;
@@ -45,6 +139,7 @@ const App = () => {
       return;
     }
 
+    // Check if URL already existed in cart
     for (const book of currentBooks) {
       const { sources } = book;
       for (const { url } of sources) {
@@ -55,6 +150,7 @@ const App = () => {
       }
     }
 
+    // Fetching book data
     setStatusMessage("Scraping book data...");
     try {
       const response = await fetch(
@@ -63,6 +159,7 @@ const App = () => {
       const body = await response.json();
       const { id, thumbnailURL, sources } = body;
 
+      // Fetching thumbnail dimension
       setStatusMessage("Scraping thumbnail data...");
       const img = new Image();
       img.onload = function() {
@@ -73,11 +170,12 @@ const App = () => {
             thumbnailWidth: img.width,
             thumbnailHeight: img.height,
             sources,
+            lastUpdatedAt: Date.now(),
           },
           ...currentBooks,
         ]);
 
-        setStatusMessage("");
+        setStatusMessage(DEFAULT_MESSAGE);
         setBookURL("");
       };
       img.onerror = function() {
@@ -89,18 +187,63 @@ const App = () => {
     }
   };
 
+  const onModalClose = (): void => {
+    setArrangedBooks(null);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <h1>What's your Mandarake item?</h1>
+        <h1>
+          {currentBooks.length === 0
+            ? "What's your Mandarake item?"
+            : `Total: ${Number(
+                getTotalPrice(currentBooks),
+              ).toLocaleString()}円`}
+        </h1>
         <input
           className="App-input"
           onChange={onInputChange}
           type="text"
           value={bookURL}
         />
-        <p>{statusMessage}</p>
+        <h3>{statusMessage}</h3>
       </header>
+      <div className="App-container">
+        {currentBooks.map((book: Book, index: number) => (
+          <div className="App-container-item" key={book.id}>
+            <BookCard
+              book={book}
+              index={index}
+              selected={selectedIndex === index}
+              onSelectToggle={onBookSelectToggle}
+              onDelete={onBookDelete}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="App-action-buttons">
+        <button
+          className="App-action-button App-action-button-refresh"
+          onClick={onBooksRefresh}
+          disabled={shouldDisableButtons}
+        >
+          <IconRefresh className="App-action-button-icon App-action-button-refresh-icon" />
+        </button>
+        <button
+          className="App-action-button App-action-button-buy"
+          onClick={onBooksBuy}
+          disabled={shouldDisableButtons}
+        >
+          <IconCart className="App-action-button-icon App-action-button-buy-icon" />
+        </button>
+      </div>
+      {arrangedBooks != null ? (
+        <ArrangedBooksModal
+          arrangedBooks={arrangedBooks}
+          onClose={onModalClose}
+        />
+      ) : null}
     </div>
   );
 };
