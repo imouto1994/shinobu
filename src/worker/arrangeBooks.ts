@@ -51,7 +51,7 @@ export function arrangeBooks(books: Book[]): Map<Book[][]> {
   let bestBucketCount = Infinity;
 
   function backtrack(bookIndex: number, bucketFilled: number): void {
-    if (bucketFilled > bestBucketCount) {
+    if (bucketFilled >= bestBucketCount) {
       return;
     }
 

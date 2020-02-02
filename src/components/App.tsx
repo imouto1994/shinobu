@@ -6,17 +6,16 @@ import ArrangedBooksModal from "./ArrangedBooksModal";
 import BookCard from "./BookCard";
 import IconCart from "./IconCart";
 import IconRefresh from "./IconRefresh";
-import {
-  arrangeBooks,
-  Book,
-  getTotalPrice,
-  isOutdatedBook,
-} from "../data/book";
+import { Book, getTotalPrice, isOutdatedBook } from "../data/book";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { Map } from "../utils/type";
 
+const worker = require("workerize-loader!../worker/arrangeBooks"); // eslint-disable-line import/no-webpack-loader-syntax
+
 const ALLOWED_HOSTNAMES = ["order.mandarake.co.jp"];
 const DEFAULT_MESSAGE = "Mandarake - Rulers of Time <3";
+
+const workerInstance = worker();
 
 const App = () => {
   const [currentBooks, setCurrentBooks] = useLocalStorage<Book[]>("books", []);
@@ -28,7 +27,7 @@ const App = () => {
     null,
   );
 
-  const onBooksBuy = (): void => {
+  const onBooksBuy = async (): Promise<void> => {
     setShouldDisableButtons(true);
     const hasSoldOut =
       currentBooks.filter(book => book.sources.length === 0).length > 0;
@@ -36,13 +35,9 @@ const App = () => {
       setStatusMessage("There is at least one book sold out!");
       setShouldDisableButtons(false);
     } else {
-      // Prioritize UI being updated fist before proceeding
-      // since book packing is a long synchronous task
-      setTimeout(() => {
-        const newArrangedBooks = arrangeBooks(currentBooks);
-        setArrangedBooks(newArrangedBooks);
-        setShouldDisableButtons(false);
-      }, 0);
+      const newArrangedBooks = await workerInstance.arrangeBooks(currentBooks);
+      setArrangedBooks(newArrangedBooks);
+      setShouldDisableButtons(false);
     }
   };
 

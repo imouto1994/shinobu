@@ -1,5 +1,3 @@
-import { Map } from "../utils/type";
-
 export type BookSource = {
   price: number;
   storeName: string;
