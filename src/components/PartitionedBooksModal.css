@@ -1,4 +1,4 @@
-.ArrangedBooksModal-container {
+.PartitionedBooksModal-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,43 +10,43 @@
   padding: 16px 12px;
 }
 
-.ArrangedBooksModal-books-container {
+.PartitionedBooksModal-books-container {
   display: flex;
   flex-flow: row wrap;
   align-items: flex-start;
 }
 
-.ArrangedBooksModal-books-container-item {
+.PartitionedBooksModal-books-container-item {
   width: calc(100% / 2);
   padding: 8px;
 }
 
 @media all and (min-width: 768px) {
-  .ArrangedBooksModal-books-container-item {
+  .PartitionedBooksModal-books-container-item {
     width: calc(100% / 4);
   }
 }
 
 @media all and (min-width: 992px) {
-  .ArrangedBooksModal-books-container-item {
+  .PartitionedBooksModal-books-container-item {
     width: calc(100% / 6);
   }
 }
 
 @media all and (min-width: 1200px) {
-  .ArrangedBooksModal-books-container-item {
+  .PartitionedBooksModal-books-container-item {
     width: calc(100% / 8);
   }
 }
 
-.ArrangedBooksModal-container-close-button {
+.PartitionedBooksModal-container-close-button {
   display: flex;
   position: absolute;
   top: 16px;
   right: 16px;
 }
 
-.ArrangedBooksModal-container-close-icon {
+.PartitionedBooksModal-container-close-icon {
   width: 32px;
   height: 32px;
 }

@@ -36,7 +36,7 @@ function initializeBuckets(books: Book[]) {
   };
 }
 
-export function arrangeBooks(books: Book[]): Map<Book[][]> {
+export function partitionBooks(books: Book[]): Map<Book[][]> {
   const { bucketPrices, bucketStores } = initializeBuckets(books);
   const bucketBooksList: Book[][] = bucketPrices.map(() => []);
   const bookSourceMapList: Map<BookSource>[] = books.map(book => {

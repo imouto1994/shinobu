@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent } from "react";
 
 import "./App.css";
 
-import ArrangedBooksModal from "./ArrangedBooksModal";
+import PartitionedBooksModal from "./PartitionedBooksModal";
 import BookCard from "./BookCard";
 import IconCart from "./IconCart";
 import IconRefresh from "./IconRefresh";
@@ -10,7 +10,7 @@ import { Book, getTotalPrice, isOutdatedBook } from "../data/book";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { Map } from "../utils/type";
 
-const worker = require("workerize-loader!../worker/arrangeBooks"); // eslint-disable-line import/no-webpack-loader-syntax
+const worker = require("workerize-loader!../worker/partitionBooksMaxPriority"); // eslint-disable-line import/no-webpack-loader-syntax
 
 const ALLOWED_HOSTNAMES = ["order.mandarake.co.jp"];
 const DEFAULT_MESSAGE = "Mandarake - Rulers of Time <3";
@@ -23,9 +23,9 @@ const App = () => {
   const [statusMessage, setStatusMessage] = useState(DEFAULT_MESSAGE);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [shouldDisableButtons, setShouldDisableButtons] = useState(false);
-  const [arrangedBooks, setArrangedBooks] = useState<Map<Book[][]> | null>(
-    null,
-  );
+  const [partitionedBooks, setPartitionedBooks] = useState<Map<
+    Book[][]
+  > | null>(null);
 
   const onBooksBuy = async (): Promise<void> => {
     setShouldDisableButtons(true);
@@ -35,8 +35,10 @@ const App = () => {
       setStatusMessage("There is at least one book sold out!");
       setShouldDisableButtons(false);
     } else {
-      const newArrangedBooks = await workerInstance.arrangeBooks(currentBooks);
-      setArrangedBooks(newArrangedBooks);
+      const newPartitionedBooks = await workerInstance.partitionBooks(
+        currentBooks,
+      );
+      setPartitionedBooks(newPartitionedBooks);
       setShouldDisableButtons(false);
     }
   };
@@ -183,7 +185,7 @@ const App = () => {
   };
 
   const onModalClose = (): void => {
-    setArrangedBooks(null);
+    setPartitionedBooks(null);
   };
 
   return (
@@ -233,9 +235,9 @@ const App = () => {
           <IconCart className="App-action-button-icon App-action-button-buy-icon" />
         </button>
       </div>
-      {arrangedBooks != null ? (
-        <ArrangedBooksModal
-          arrangedBooks={arrangedBooks}
+      {partitionedBooks != null ? (
+        <PartitionedBooksModal
+          partitionedBooks={partitionedBooks}
           onClose={onModalClose}
         />
       ) : null}

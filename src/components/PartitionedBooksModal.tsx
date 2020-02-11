@@ -1,6 +1,6 @@
 import React, { Fragment, useLayoutEffect } from "react";
 
-import "./ArrangedBooksModal.css";
+import "./PartitionedBooksModal.css";
 
 import IconClose from "./IconClose";
 import BookCard from "./BookCard";
@@ -8,12 +8,12 @@ import { Book, BookSource } from "../data/book";
 import { Map } from "../utils/type";
 
 type Props = {
-  arrangedBooks: Map<Book[][]>;
+  partitionedBooks: Map<Book[][]>;
   onClose: () => void;
 };
 
-const ArrangedBooksModal = (props: Props) => {
-  const { arrangedBooks, onClose } = props;
+const PartitionedBooksModal = (props: Props) => {
+  const { partitionedBooks, onClose } = props;
 
   useLayoutEffect((): (() => void) => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -28,9 +28,9 @@ const ArrangedBooksModal = (props: Props) => {
   };
 
   return (
-    <div className="ArrangedBooksModal-container">
-      {Object.keys(arrangedBooks).map((storeName: string) => {
-        const bucketBooksList = arrangedBooks[storeName];
+    <div className="PartitionedBooksModal-container">
+      {Object.keys(partitionedBooks).map((storeName: string) => {
+        const bucketBooksList = partitionedBooks[storeName];
         return (
           <Fragment key={storeName}>
             {bucketBooksList.map((books: Book[], index: number) => {
@@ -51,10 +51,10 @@ const ArrangedBooksModal = (props: Props) => {
                   <h1>{`${storeName} ${Number(
                     totalPrice,
                   ).toLocaleString()}円`}</h1>
-                  <div className="ArrangedBooksModal-books-container">
+                  <div className="PartitionedBooksModal-books-container">
                     {books.map((book: Book, index: number) => (
                       <div
-                        className="ArrangedBooksModal-books-container-item"
+                        className="PartitionedBooksModal-books-container-item"
                         key={book.id}
                       >
                         <BookCard
@@ -73,13 +73,13 @@ const ArrangedBooksModal = (props: Props) => {
         );
       })}
       <button
-        className="ArrangedBooksModal-container-close-button"
+        className="PartitionedBooksModal-container-close-button"
         onClick={onCloseButtonClick}
       >
-        <IconClose className="ArrangedBooksModal-container-close-icon" />
+        <IconClose className="PartitionedBooksModal-container-close-icon" />
       </button>
     </div>
   );
 };
 
-export default ArrangedBooksModal;
+export default PartitionedBooksModal;
