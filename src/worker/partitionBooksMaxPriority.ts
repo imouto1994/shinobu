@@ -22,7 +22,7 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
 
   const stores = Object.entries(storeBooks);
   stores.sort(
-    ([, { total: totalA }], [, { total: totalB }]) => totalB - totalA,
+    ([, { total: totalA }], [, { total: totalB }]) => totalA - totalB,
   );
 
   const bookSourcesMap: Map<Map<BookSource>> = {};
@@ -35,7 +35,12 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
 
   const visited: Map<boolean> = {};
   const map: Map<Book[][]> = {};
-  for (const [storeName, { books: storeBooks }] of stores) {
+  while (stores.length > 0) {
+    const topStore = stores.pop();
+    if (topStore == null) {
+      continue;
+    }
+    const [storeName, { books: storeBooks }] = topStore;
     map[storeName] = [];
     let price = 0;
     let bucketBooks: Book[] = [];
@@ -56,6 +61,23 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
     if (bucketBooks.length > 0) {
       map[storeName].push(bucketBooks);
     }
+
+    for (const entry of stores) {
+      entry[1].books = entry[1].books
+        .map(book => {
+          const bookPrice = bookSourcesMap[book.id][entry[0]].price;
+          if (visited[book.id]) {
+            entry[1].total -= bookPrice;
+            return null;
+          }
+
+          return book;
+        })
+        .filter((book): book is Book => book != null);
+    }
+    stores.sort(
+      ([, { total: totalA }], [, { total: totalB }]) => totalA - totalB,
+    );
   }
 
   return map;
