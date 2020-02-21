@@ -6,6 +6,7 @@ const MAX_PRICE_PER_BUCKET = 25000;
 export function partitionBooks(books: Book[]): Map<Book[][]> {
   const storeBooks: Map<{ total: number; books: Book[] }> = {};
 
+  // Populate `storeBooks`
   for (const book of books) {
     for (const source of book.sources) {
       if (storeBooks[source.storeName] == null) {
@@ -20,11 +21,7 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
     }
   }
 
-  const stores = Object.entries(storeBooks);
-  stores.sort(
-    ([, { total: totalA }], [, { total: totalB }]) => totalA - totalB,
-  );
-
+  // Populate `bookSourcesMap`
   const bookSourcesMap: Map<Map<BookSource>> = {};
   for (const book of books) {
     bookSourcesMap[book.id] = {};
@@ -33,26 +30,41 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
     }
   }
 
+  // Sort `stores` entries
+  const stores = Object.entries(storeBooks);
+  stores.sort(
+    ([, { total: totalA }], [, { total: totalB }]) => totalA - totalB,
+  );
+  for (const [storeName, { books: storeBooks }] of stores) {
+    storeBooks.sort((bookA, bookB) => {
+      return (
+        bookSourcesMap[bookA.id][storeName].price -
+        bookSourcesMap[bookB.id][storeName].price
+      );
+    });
+  }
+
   const visited: Map<boolean> = {};
   const map: Map<Book[][]> = {};
-  while (stores.length > 0) {
-    const topStore = stores.pop();
-    if (topStore == null) {
-      continue;
-    }
+
+  while (Object.keys(visited).length < books.length) {
+    // Get store with current top total price
+    const topStore = stores[stores.length - 1];
     const [storeName, { books: storeBooks }] = topStore;
-    map[storeName] = [];
+
+    if (map[storeName] == null) {
+      map[storeName] = [];
+    }
+
     let price = 0;
-    let bucketBooks: Book[] = [];
+    const bucketBooks: Book[] = [];
     for (const book of storeBooks) {
       if (visited[book.id]) {
         continue;
       }
       const bookPrice = bookSourcesMap[book.id][storeName].price;
       if (price + bookPrice > MAX_PRICE_PER_BUCKET) {
-        map[storeName].push(bucketBooks);
-        bucketBooks = [];
-        price = 0;
+        break;
       }
       price += bookPrice;
       bucketBooks.push(book);
