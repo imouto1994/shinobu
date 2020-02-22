@@ -39,8 +39,8 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
     storeBooks.sort((bookA, bookB) => {
       if (bookA.sources.length === bookB.sources.length) {
         return (
-          bookSourcesMap[bookA.id][storeName].price -
-          bookSourcesMap[bookB.id][storeName].price
+          bookSourcesMap[bookB.id][storeName].price -
+          bookSourcesMap[bookA.id][storeName].price
         );
       } else {
         return bookA.sources.length - bookB.sources.length;
@@ -68,7 +68,7 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
       }
       const bookPrice = bookSourcesMap[book.id][storeName].price;
       if (price + bookPrice > MAX_PRICE_PER_BUCKET) {
-        break;
+        continue;
       }
       price += bookPrice;
       bucketBooks.push(book);
