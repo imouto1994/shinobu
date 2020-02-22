@@ -39,8 +39,8 @@ export function partitionBooks(books: Book[]): Map<Book[][]> {
     storeBooks.sort((bookA, bookB) => {
       if (bookA.sources.length === bookB.sources.length) {
         return (
-          bookSourcesMap[bookB.id][storeName].price -
-          bookSourcesMap[bookA.id][storeName].price
+          bookSourcesMap[bookA.id][storeName].price -
+          bookSourcesMap[bookB.id][storeName].price
         );
       } else {
         return bookA.sources.length - bookB.sources.length;
