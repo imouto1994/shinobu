@@ -47,6 +47,19 @@
   font-size: 12px;
 }
 
+.BookCard-thumbnail-price-tag {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 4;
+  background: var(--color-secondary);
+  color: black;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-top-left-radius: 4px;
+}
+
 .BookCard-thumbnail {
   position: absolute;
   top: 0;

@@ -3,7 +3,7 @@ import classnames from "classnames";
 
 import "./BookCard.css";
 
-import { Book, isOutdatedBook } from "../data/book";
+import { Book, isOutdatedBook, getAveragePrice } from "../data/book";
 
 type BookCardProps = {
   book: Book;
@@ -67,6 +67,9 @@ const BookCard = (props: BookCardProps) => {
             Delete
           </button>
         ) : null}
+        <div className="BookCard-thumbnail-price-tag">
+          {`${Number(getAveragePrice(book)).toLocaleString()}円`}
+        </div>
       </div>
       <div className="BookCard-sources">
         {sources.map((source, index) => {

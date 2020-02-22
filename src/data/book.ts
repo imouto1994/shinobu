@@ -19,15 +19,21 @@ export function isOutdatedBook(book: Book): boolean {
   return Date.now() - book.lastUpdatedAt > DAY_IN_MILLISECONDS;
 }
 
+export function getAveragePrice(book: Book): number {
+  const averagePrice = Math.floor(
+    book.sources.reduce(
+      (acc: number, source: BookSource) => acc + source.price,
+      0,
+    ) / book.sources.length,
+  );
+
+  return averagePrice - (averagePrice % 100);
+}
+
 export function getTotalPrice(books: Book[]): number {
   let total = 0;
   for (const book of books) {
-    const averagePrice =
-      book.sources.reduce(
-        (acc: number, source: BookSource) => acc + source.price,
-        0,
-      ) / book.sources.length;
-    total += averagePrice;
+    total += getAveragePrice(book);
   }
 
   return Math.ceil(total);

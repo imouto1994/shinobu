@@ -60,7 +60,7 @@
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
-  z-index: 2;
+  z-index: 5;
 }
 
 .App-action-button {
