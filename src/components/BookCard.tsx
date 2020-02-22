@@ -67,9 +67,11 @@ const BookCard = (props: BookCardProps) => {
             Delete
           </button>
         ) : null}
-        <div className="BookCard-thumbnail-price-tag">
-          {`${Number(getAveragePrice(book)).toLocaleString()}円`}
-        </div>
+        {selectedStoreName == null ? (
+          <div className="BookCard-thumbnail-price-tag">
+            {`${Number(getAveragePrice(book)).toLocaleString()}円`}
+          </div>
+        ) : null}
       </div>
       <div className="BookCard-sources">
         {sources.map((source, index) => {
