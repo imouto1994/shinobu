@@ -89,16 +89,20 @@
 
 .App-action-button-refresh {
   padding: 8px;
+  margin-bottom: 8px;
 }
 
 .App-action-button-buy {
   padding: 12px;
-  margin-top: 8px;
 }
 
 .App-action-button-refresh-icon {
   width: 24px;
   height: 24px;
+}
+
+.App-action-button-force-refresh-icon {
+  fill: var(--color-secondary);
 }
 
 .App-action-button-buy-icon {

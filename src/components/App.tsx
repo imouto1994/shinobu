@@ -43,13 +43,17 @@ const App = () => {
     }
   };
 
-  const onBooksRefresh = async (): Promise<void> => {
+  const onBooksRefresh = async (options?: {
+    forceRefresh?: boolean;
+  }): Promise<void> => {
     setShouldDisableButtons(true);
     setStatusMessage("Refreshing outdated books...");
+    const isForceRefresh = options != null && !!options.forceRefresh;
+
     const updatedBooks = [...currentBooks];
     for (const index in updatedBooks) {
       const book = updatedBooks[index];
-      if (!isOutdatedBook(book)) {
+      if (!isForceRefresh && !isOutdatedBook(book)) {
         continue;
       }
       try {
@@ -222,7 +226,14 @@ const App = () => {
       <div className="App-action-buttons">
         <button
           className="App-action-button App-action-button-refresh"
-          onClick={onBooksRefresh}
+          onClick={() => onBooksRefresh({ forceRefresh: true })}
+          disabled={shouldDisableButtons}
+        >
+          <IconRefresh className="App-action-button-icon App-action-button-refresh-icon App-action-button-force-refresh-icon" />
+        </button>
+        <button
+          className="App-action-button App-action-button-refresh"
+          onClick={() => onBooksRefresh()}
           disabled={shouldDisableButtons}
         >
           <IconRefresh className="App-action-button-icon App-action-button-refresh-icon" />
