@@ -39,17 +39,15 @@ function scrapeMandarake(bookURL, htmlString) {
     .trim();
 
   // Scrape price
-  const price =
-    $(".soldout").length === 0
-      ? parseInt(
-          $(".__price")
-            .eq(0)
-            .text()
-            .trim()
-            .replace(/,/g, ""),
-          10,
-        )
-      : null;
+  const price = !htmlString.includes('class="soldout"')
+    ? parseInt(
+        $("meta[itemprop=price]")
+          .attr("content")
+          .trim()
+          .replace(/,/g, ""),
+        10,
+      )
+    : null;
 
   if (price != null) {
     sources.push({

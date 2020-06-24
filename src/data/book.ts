@@ -20,6 +20,10 @@ export function isOutdatedBook(book: Book): boolean {
 }
 
 export function getAveragePrice(book: Book): number {
+  if (book.sources.length === 0) {
+    return 0;
+  }
+
   const averagePrice = Math.floor(
     book.sources.reduce(
       (acc: number, source: BookSource) => acc + source.price,
