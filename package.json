@@ -13,7 +13,7 @@
     "@types/react-dom": "^16.9.0",
     "cheerio": "^1.0.0-rc.3",
     "classnames": "^2.2.6",
-    "got": "^10.4.0",
+    "got": "^11.8.5",
     "query-string": "^6.10.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
